@@ -4,10 +4,11 @@ cpu=$(top -bn1 | grep 'Cpu(s)' | awk '{printf "%3.0f%%", $2+$4}')
 ram=$(free | awk '/Mem/{printf "%3.0f%%", $3/$2*100}')
 disk=$(df -h / | awk 'NR==2{gsub(/%/,"",$5); printf "%3d%%", $5}')
 
-# Net speed (delta from last call)
-NET_FILE="/tmp/tmux-net-speed-$$"
-rx_now=$(cat /sys/class/net/eth0/statistics/rx_bytes 2>/dev/null || echo 0)
-tx_now=$(cat /sys/class/net/eth0/statistics/tx_bytes 2>/dev/null || echo 0)
+# Net speed (delta from last call) — auto-detect active interface
+iface=$(ip route show default 2>/dev/null | awk '{print $5; exit}')
+[ -z "$iface" ] && iface="eth0"
+rx_now=$(cat /sys/class/net/$iface/statistics/rx_bytes 2>/dev/null || echo 0)
+tx_now=$(cat /sys/class/net/$iface/statistics/tx_bytes 2>/dev/null || echo 0)
 now=$(date +%s)
 
 if [ -f /tmp/tmux-net-status ]; then
