@@ -36,6 +36,9 @@ if [ "$MODE" = "local" ]; then
     git clone -q https://github.com/zsh-users/zsh-autosuggestions "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
   [ -d "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting" ] || \
     git clone -q https://github.com/zsh-users/zsh-syntax-highlighting "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+  # Clone powerlevel10k theme
+  [ -d "$ZSH_CUSTOM/themes/powerlevel10k" ] || \
+    git clone -q --depth=1 https://github.com/romkatv/powerlevel10k "$ZSH_CUSTOM/themes/powerlevel10k"
 elif [ "$MODE" = "server" ]; then
   link "$DOTFILES/.zshrc.server" "$HOME/.zshrc"
 fi

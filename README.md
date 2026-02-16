@@ -8,7 +8,7 @@ Linux).
 
 | File | Description |
 |------|-------------|
-| `.zshrc` | ZSH config for local/desktop (oh-my-zsh, starship, fzf, zoxide) |
+| `.zshrc` | ZSH config for local/desktop (oh-my-zsh, powerlevel10k, fzf, zoxide) |
 | `.zshrc.server` | ZSH config for servers (minimal, no framework, zero dependencies) |
 | `.tmux.conf` | tmux config (Ctrl+A prefix, vim-style nav, Campbell theme) |
 | `.config/nvim/init.lua` | Neovim config (lazy.nvim, LSP, treesitter, telescope) |
@@ -24,7 +24,7 @@ git clone https://github.com/Couiz/.dotfiles.git ~/.dotfiles
 cd ~/.dotfiles
 ```
 
-**Local machine** (WSL2/desktop -- installs oh-my-zsh + plugins):
+**Local machine** (WSL2/desktop -- installs oh-my-zsh, powerlevel10k, plugins):
 
 ```sh
 ./install.sh local
@@ -114,7 +114,7 @@ mv ~/.zshrc.bak ~/.zshrc
 
 Optional (auto-detected, not required):
 
-- [starship](https://starship.rs) -- prompt (falls back to `user@host:path$`)
+- [eza](https://github.com/eza-community/eza) -- modern ls replacement (aliased if installed)
 - [fzf](https://github.com/junegunn/fzf) -- fuzzy finder
 - [fd](https://github.com/sharkdp/fd) -- file finder (fzf backend)
 - [zoxide](https://github.com/ajeetdsouza/zoxide) -- smart cd

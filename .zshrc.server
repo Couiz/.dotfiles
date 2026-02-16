@@ -43,6 +43,15 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 
+# eza (modern ls replacement)
+if command -v eza &>/dev/null; then
+  alias ls='eza --icons --group-directories-first'
+  alias ll='eza -l --icons --header --group-directories-first'
+  alias la='eza -la --icons --header --group-directories-first'
+  alias lt='eza --tree --level=2 --icons --group-directories-first'
+  alias lg='eza -l --git --icons --header --group-directories-first'
+fi
+
 # --- Clipboard (OSC 52) ---
 clip() {
   local data=$(cat "$@" | base64 | tr -d '\n')

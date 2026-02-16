@@ -131,7 +131,7 @@ every tool is guarded with `command -v` or `[ -s file ]`.
 
 - **Platforms:** WSL2 (Ubuntu 24.04), Ubuntu servers, Mac (SSH client only)
 - **Terminals:** Windows Terminal, iTerm2, Linux terminals
-- **Shell tools:** zoxide, fzf (fdfind/fd), starship prompt
+- **Shell tools:** zoxide, fzf (fdfind/fd), powerlevel10k prompt, eza
 - **Neovim LSPs:** pyright, ts_ls, rust_analyzer, lua_ls (via mason)
 - **Git tooling:** GitHub CLI, Git LFS, delta pager
 
