@@ -134,3 +134,22 @@ every tool is guarded with `command -v` or `[ -s file ]`.
 - **Shell tools:** zoxide, fzf (fdfind/fd), starship prompt
 - **Neovim LSPs:** pyright, ts_ls, rust_analyzer, lua_ls (via mason)
 - **Git tooling:** GitHub CLI, Git LFS, delta pager
+
+## Known Issues / Pending Work
+
+### .gitconfig portability (not yet addressed)
+
+The `.gitconfig` has three issues on servers where tools are missing:
+
+1. **`!/usr/bin/gh`** (lines 6, 9) -- hardcoded absolute path. If `gh` is
+   missing or installed elsewhere, all GitHub HTTPS operations fail.
+   Fix: use `!gh auth git-credential` (resolve via PATH) or conditional include.
+2. **`pager = delta`** (line 16) -- if delta is not installed, `git diff`,
+   `git log`, `git show` all fail. Fix: use `[include] path = ~/.gitconfig.local`
+   for delta config, keep `less` as default pager in base.
+3. **LFS `required = true`** (line 13) -- blocks `git clone`/`checkout` on
+   LFS repos if `git-lfs` is not installed. Fix: remove `required = true`.
+
+The owner deferred this work intentionally. The pattern should match
+`.zshrc.local` — a base `.gitconfig` that works everywhere, with
+`~/.gitconfig.local` for machine-specific overrides (delta, gh).
