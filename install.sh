@@ -5,7 +5,7 @@ set -e
 DOTFILES="$(cd "$(dirname "$0")" && pwd)"
 MODE="${1:-}"
 
-if [ -z "$MODE" ]; then
+if [ "$MODE" != "local" ] && [ "$MODE" != "server" ]; then
   echo "Usage: ./install.sh <local|server>"
   echo "  local   — oh-my-zsh + full config (WSL2/desktop)"
   echo "  server  — minimal config (remote servers)"
