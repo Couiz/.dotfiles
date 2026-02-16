@@ -1,6 +1,7 @@
 #!/bin/sh
 # test-dotfiles.sh — diagnostic checks for dotfiles setup
 # Run on any machine after install.sh to verify the environment.
+# Works both inside and outside tmux.
 # Usage: ./test-dotfiles.sh
 
 errors=0
@@ -12,7 +13,7 @@ warn() { printf "  WARN: %s\n" "$1"; warnings=$((warnings + 1)); }
 skip() { printf "  SKIP: %s\n" "$1"; }
 
 # ============================================================
-# Test 1: Nerd Font glyphs
+# Test 1: Nerd Font glyphs (visual)
 # ============================================================
 printf "Test 1: Nerd Font / Powerline glyphs\n"
 printf "  The line below should show three distinct icons (arrow, folder, branch):\n"
@@ -23,21 +24,43 @@ printf "  is missing Nerd Font glyphs. Check your terminal profile's\n"
 printf "  font setting (e.g. MesloLGS NF, Hack Nerd Font).\n\n"
 
 # ============================================================
-# Test 2: OSC 11 response leak inside tmux
+# Test 2: OSC 11 response leak (tmux bug detection)
 # ============================================================
 printf "Test 2: OSC 11 escape sequence leak\n"
-if [ -z "$TMUX" ]; then
-    skip "not inside tmux (run this inside a tmux session to test)"
+
+# query tmux config — works both inside and outside tmux if a server is running
+tmux_running=false
+if tmux list-sessions > /dev/null 2>&1; then
+    tmux_running=true
+fi
+
+if [ "$tmux_running" = true ] || [ -n "$TMUX" ]; then
+    passthrough=$(tmux show-options -gv allow-passthrough 2>/dev/null)
+    escape_time=$(tmux show-options -sv escape-time 2>/dev/null)
+    tmux_version=$(tmux -V 2>/dev/null)
+
+    printf "  tmux config: allow-passthrough=%s  escape-time=%s\n" \
+        "${passthrough:-unknown}" "${escape_time:-unknown}"
+    printf "  version: %s\n" "${tmux_version:-unknown}"
+
+    if [ "$passthrough" = "on" ] || [ "$passthrough" = "all" ]; then
+        fail "OSC 11 response leak: allow-passthrough is '${passthrough}'"
+        printf "        Known tmux bug (tmux/tmux#4634): when a client attaches,\n"
+        printf "        tmux queries the outer terminal for DA/DA2/OSC 10/OSC 11.\n"
+        printf "        The response leaks as visible text (e.g. '11;rgb:...').\n"
+        printf "        This affects tmux 3.4+ with Windows Terminal over SSH.\n"
+        if [ "${escape_time:-1}" = "0" ]; then
+            printf "        escape-time=0 may worsen this (no time to reassemble\n"
+            printf "        fragmented responses over SSH).\n"
+        fi
+        printf "\n"
+        printf "        Manual test: detach (prefix+d), then 'tmux a'.\n"
+        printf "        If '11;rgb:...' appears on the prompt, the bug is active.\n"
+    else
+        pass "allow-passthrough is '${passthrough:-off}' (no leak risk)"
+    fi
 else
-    # Visual-only test: send OSC 11 query and let the user observe.
-    # We avoid raw mode / dd since that corrupts terminal state.
-    printf "  Sending OSC 11 query...\n"
-    printf '\033]11;?\033\\' > /dev/tty 2>/dev/null
-    sleep 0.5
-    printf "  Check: if you see garbage text like '11;rgb:...' above or\n"
-    printf "  on the next prompt line, the OSC 11 response is leaking.\n"
-    printf "  This is caused by tmux allow-passthrough forwarding the\n"
-    printf "  query to the outer terminal, which responds with visible text.\n"
+    skip "no tmux server running (start tmux and re-run to test)"
 fi
 printf "\n"
 

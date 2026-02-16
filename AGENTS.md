@@ -153,3 +153,30 @@ The `.gitconfig` has three issues on servers where tools are missing:
 The owner deferred this work intentionally. The pattern should match
 `.zshrc.local` — a base `.gitconfig` that works everywhere, with
 `~/.gitconfig.local` for machine-specific overrides (delta, gh).
+
+### OSC 11 response leak in tmux (upstream bug)
+
+When attaching to a tmux session over SSH from Windows Terminal, escape
+sequence responses leak as visible text on the prompt:
+
+```
+❯ 11;rgb:0c0c/0c0c/0c0c
+```
+
+**Root cause:** tmux bug ([tmux/tmux#4634]). On client attach, tmux
+queries the outer terminal for device attributes (DA/DA2) and colors
+(OSC 10/11). The outer terminal responds, but tmux fails to consume the
+response — it gets forwarded to the pane as visible text. The reporter
+identified a likely code defect: `tty->term->flags` vs `tty->flags` in
+`tty.c`, causing duplicate queries whose responses leak.
+
+**Affected config:** `allow-passthrough on` + `escape-time 0` (current
+`.tmux.conf`). The bug triggers regardless of passthrough, but
+`escape-time 0` may worsen it by not allowing time for fragmented SSH
+responses to reassemble.
+
+**Status:** Upstream bug. No fix available in tmux 3.4. Workarounds to
+evaluate when a fix ships: update tmux, or increase `escape-time` to a
+small non-zero value (e.g. 5).
+
+[tmux/tmux#4634]: https://github.com/tmux/tmux/issues/4634
