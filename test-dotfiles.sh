@@ -16,7 +16,8 @@ skip() { printf "  SKIP: %s\n" "$1"; }
 # ============================================================
 printf "Test 1: Nerd Font / Powerline glyphs\n"
 printf "  The line below should show three distinct icons (arrow, folder, branch):\n"
-printf "  \xee\x82\xb0  \xef\x81\xbb  \xee\x82\xa0\n"
+# U+E0B0 (Powerline arrow), U+F07B (folder), U+E0A0 (git branch) — octal UTF-8
+printf "  \356\202\260  \357\201\273  \356\202\240\n"
 printf "  If you see boxes, '?', or blank spaces, your terminal font\n"
 printf "  is missing Nerd Font glyphs. Check your terminal profile's\n"
 printf "  font setting (e.g. MesloLGS NF, Hack Nerd Font).\n\n"
@@ -28,39 +29,15 @@ printf "Test 2: OSC 11 escape sequence leak\n"
 if [ -z "$TMUX" ]; then
     skip "not inside tmux (run this inside a tmux session to test)"
 else
-    # save tty settings, switch to raw mode briefly
-    saved_tty=$(stty -g 2>/dev/null)
-    if [ -z "$saved_tty" ]; then
-        skip "cannot read tty settings"
-    else
-        # send OSC 11 query and try to read the response
-        stty raw -echo min 0 time 3 2>/dev/null
-        printf '\033]11;?\033\\' > /dev/tty
-        response=$(dd bs=64 count=1 < /dev/tty 2>/dev/null)
-        stty "$saved_tty" 2>/dev/null
-
-        if printf '%s' "$response" | grep -q "rgb:"; then
-            # response was consumed (good — terminal answered properly)
-            pass "OSC 11 response received and consumed by this script"
-            printf "        (no leak: response was captured before it hit the shell)\n"
-        else
-            warn "no OSC 11 response captured"
-            printf "        This may be fine, or the response may arrive late and leak.\n"
-            printf "        Open a NEW tmux pane and check if garbage text like\n"
-            printf "        '^[]11;rgb:...' appears on the first prompt line.\n"
-        fi
-
-        # now test for a SECOND response (the passthrough leak)
-        stty raw -echo min 0 time 3 2>/dev/null
-        leaked=$(dd bs=64 count=1 < /dev/tty 2>/dev/null)
-        stty "$saved_tty" 2>/dev/null
-
-        if printf '%s' "$leaked" | grep -q "rgb:"; then
-            fail "OSC 11 response leaked a second time (passthrough duplicate)"
-            printf "        tmux is both answering natively and forwarding via passthrough.\n"
-            printf "        The duplicate response leaks as visible text on the prompt.\n"
-        fi
-    fi
+    # Visual-only test: send OSC 11 query and let the user observe.
+    # We avoid raw mode / dd since that corrupts terminal state.
+    printf "  Sending OSC 11 query...\n"
+    printf '\033]11;?\033\\' > /dev/tty 2>/dev/null
+    sleep 0.5
+    printf "  Check: if you see garbage text like '11;rgb:...' above or\n"
+    printf "  on the next prompt line, the OSC 11 response is leaking.\n"
+    printf "  This is caused by tmux allow-passthrough forwarding the\n"
+    printf "  query to the outer terminal, which responds with visible text.\n"
 fi
 printf "\n"
 
