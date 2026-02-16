@@ -1,0 +1,53 @@
+# === ZSH Config (Server) ===
+
+# --- History ---
+HISTFILE=~/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+setopt SHARE_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE HIST_REDUCE_BLANKS INC_APPEND_HISTORY
+
+# --- Navigation ---
+setopt AUTO_CD AUTO_PUSHD PUSHD_IGNORE_DUPS PUSHD_SILENT
+
+# --- Completion ---
+autoload -Uz compinit && compinit
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+setopt COMPLETE_ALIASES
+
+# --- Prompt ---
+command -v starship &>/dev/null && eval "$(starship init zsh)" || PROMPT='%n@%m:%~$ '
+
+# --- Plugins (if available) ---
+[ -s ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+[ -s ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# --- Tools ---
+command -v zoxide &>/dev/null && eval "$(zoxide init zsh)"
+
+# fzf
+if [ -d /usr/share/doc/fzf/examples ]; then
+  source /usr/share/doc/fzf/examples/key-bindings.zsh 2>/dev/null
+  source /usr/share/doc/fzf/examples/completion.zsh 2>/dev/null
+fi
+if command -v fdfind &>/dev/null; then
+  export FZF_DEFAULT_COMMAND='fdfind --type f --hidden --follow --exclude .git'
+elif command -v fd &>/dev/null; then
+  export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+fi
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+
+# --- Aliases ---
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# --- Clipboard (OSC 52) ---
+clip() {
+  local data=$(cat "$@" | base64 | tr -d '\n')
+  printf "\033]52;c;%s\a" "$data"
+}
+
+# --- Machine-specific config ---
+[ -s "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"

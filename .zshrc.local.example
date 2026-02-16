@@ -1,0 +1,13 @@
+# Machine-specific zsh configuration
+# Copy to ~/.zshrc.local and customize (not tracked in git)
+
+# --- NVM ---
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+# --- PATH ---
+# export PATH="$HOME/.cargo/bin:$PATH"
+# export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
+# export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+# --- Custom aliases ---

@@ -21,6 +21,25 @@ opt.cursorline = true
 opt.termguicolors = true
 opt.mouse = "a"
 opt.clipboard = "unnamedplus"
+
+-- OSC 52 clipboard (works over SSH + tmux, Neovim 0.10+)
+if os.getenv("SSH_CONNECTION") or os.getenv("TMUX") then
+  local ok, osc52 = pcall(function() return require("vim.ui.clipboard.osc52") end)
+  if ok then
+    vim.g.clipboard = {
+      name = "OSC 52",
+      copy = {
+        ["+"] = osc52.copy("+"),
+        ["*"] = osc52.copy("*"),
+      },
+      paste = {
+        ["+"] = function() return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") } end,
+        ["*"] = function() return { vim.fn.split(vim.fn.getreg(""), "\n"), vim.fn.getregtype("") } end,
+      },
+    }
+  end
+end
+
 opt.undofile = true
 opt.swapfile = false
 opt.backup = false
