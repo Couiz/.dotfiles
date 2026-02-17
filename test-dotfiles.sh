@@ -44,24 +44,31 @@ if [ "$tmux_running" = true ] || [ -n "$TMUX" ]; then
     printf "  version: %s\n" "${tmux_version:-unknown}"
 
     if [ "$passthrough" = "on" ] || [ "$passthrough" = "all" ]; then
-        # check if the zle-line-init workaround is in place
+        # check mitigations: escape-time >= 30 and zle-line-init drain
         dotfiles_dir="$(cd "$(dirname "$0")" && pwd)"
-        zshrc_server="$dotfiles_dir/.zshrc.server"
-        if grep -q "__drain_leaked_responses" "$zshrc_server" 2>/dev/null; then
-            warn "OSC 11 response leak: allow-passthrough is '${passthrough}' (workaround active)"
-            printf "        Known tmux bug (tmux/tmux#4634): tmux leaks DA/OSC\n"
-            printf "        responses on client attach. Workaround in .zshrc.server\n"
-            printf "        drains leaked input via zle-line-init.\n"
-        else
-            fail "OSC 11 response leak: allow-passthrough is '${passthrough}'"
-            printf "        Known tmux bug (tmux/tmux#4634): when a client attaches,\n"
-            printf "        tmux queries the outer terminal for DA/DA2/OSC 10/OSC 11.\n"
-            printf "        The response leaks as visible text (e.g. '11;rgb:...').\n"
-            printf "        This affects tmux 3.4+ with Windows Terminal over SSH.\n"
+        has_drain=false
+        has_escape_time_fix=false
+        if grep -q "__drain_leaked_responses" "$dotfiles_dir/.zshrc.server" 2>/dev/null; then
+            has_drain=true
         fi
-        printf "\n"
-        printf "        Manual test: detach (prefix+d), then 'tmux a'.\n"
-        printf "        If '11;rgb:...' appears on the prompt, the bug is active.\n"
+        if [ "${escape_time:-0}" -ge 30 ] 2>/dev/null; then
+            has_escape_time_fix=true
+        fi
+
+        if [ "$has_escape_time_fix" = true ] && [ "$has_drain" = true ]; then
+            pass "OSC 11 leak mitigated (escape-time=${escape_time}, zle drain active)"
+        elif [ "$has_escape_time_fix" = true ]; then
+            pass "OSC 11 leak mitigated (escape-time=${escape_time})"
+        elif [ "$has_drain" = true ]; then
+            warn "OSC 11 leak partially mitigated (zle drain active, but escape-time=${escape_time})"
+            printf "        Set 'escape-time 30' in .tmux.conf for full mitigation.\n"
+        else
+            fail "OSC 11 response leak: allow-passthrough='${passthrough}' escape-time=${escape_time}"
+            printf "        Known tmux bug (tmux/tmux#4634): tmux leaks DA/OSC\n"
+            printf "        responses on client attach as visible text.\n"
+            printf "        Fix: set 'escape-time 30' in .tmux.conf\n"
+        fi
+        printf "        Upstream: https://github.com/tmux/tmux/issues/4634\n"
     else
         pass "allow-passthrough is '${passthrough:-off}' (no leak risk)"
     fi

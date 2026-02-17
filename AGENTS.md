@@ -174,6 +174,11 @@ identified a likely code defect: `tty->term->flags` vs `tty->flags` in
 Tested with `escape-time 0` and `escape-time 10` — both leak. The
 bug is in tmux's response handling, not timing.
 
+**Mitigation:** `set -s escape-time 30` eliminates the leak in practice.
+With 0 or 10ms, tmux cannot fully reassemble fragmented escape sequence
+responses arriving over SSH. 30ms gives enough time without noticeable
+ESC key delay (default tmux is 500ms).
+
 **Workaround:** `.zshrc.server` registers a `zle-line-init` widget
 (`__drain_leaked_responses`) that reads and discards any pending input
 when the line editor starts. This catches the leaked bytes before they
