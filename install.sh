@@ -49,6 +49,13 @@ link "$DOTFILES/.tmux/scripts/status.sh" "$HOME/.tmux/scripts/status.sh"
 [ -d "$HOME/.tmux/plugins/tpm" ] || \
   git clone -q https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
 
+# --- Git ---
+# .gitconfig is NOT symlinked intentionally — it has portability issues:
+#   - hardcoded /usr/bin/gh path (fails if gh is missing or elsewhere)
+#   - delta pager (breaks git diff/log/show if delta is not installed)
+#   - LFS required=true (blocks clone/checkout without git-lfs)
+# Plan: split into base .gitconfig + ~/.gitconfig.local (like .zshrc.local)
+
 # --- Neovim ---
 link "$DOTFILES/.config/nvim/init.lua" "$HOME/.config/nvim/init.lua"
 
