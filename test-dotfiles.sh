@@ -145,6 +145,75 @@ fi
 printf "\n"
 
 # ============================================================
+# Test 6: Terminal color palette (visual)
+# ============================================================
+printf "Test 6: Terminal color palette\n"
+
+# --- ANSI 16 colors ---
+printf "  Standard (0-7):  "
+i=0
+while [ $i -lt 8 ]; do
+    printf "\033[48;5;%dm %2d \033[0m" "$i" "$i"
+    i=$((i + 1))
+done
+printf "\n"
+printf "  Bright  (8-15):  "
+i=8
+while [ $i -lt 16 ]; do
+    printf "\033[48;5;%dm %2d \033[0m" "$i" "$i"
+    i=$((i + 1))
+done
+printf "\n\n"
+
+# --- 256 color palette (16-231 color cube + 232-255 grayscale) ---
+printf "  Color cube (16-231):\n"
+i=16
+while [ $i -lt 232 ]; do
+    # indent at start of each row (36 colors per row)
+    if [ $(( (i - 16) % 36 )) -eq 0 ]; then
+        printf "  "
+    fi
+    printf "\033[48;5;%dm  \033[0m" "$i"
+    i=$((i + 1))
+    if [ $(( (i - 16) % 36 )) -eq 0 ]; then
+        printf "\n"
+    fi
+done
+
+printf "  Grayscale (232-255):\n  "
+i=232
+while [ $i -lt 256 ]; do
+    printf "\033[48;5;%dm  \033[0m" "$i"
+    i=$((i + 1))
+done
+printf "\n\n"
+
+# --- Truecolor 24-bit gradient ---
+printf "  Truecolor (24-bit):\n  "
+cols=78
+seg=$((cols / 6))
+i=0
+while [ $i -lt $cols ]; do
+    if [ $i -lt $seg ]; then
+        r=255; g=$((i * 255 / seg)); b=0
+    elif [ $i -lt $((seg * 2)) ]; then
+        r=$(((seg * 2 - i) * 255 / seg)); g=255; b=0
+    elif [ $i -lt $((seg * 3)) ]; then
+        r=0; g=255; b=$(((i - seg * 2) * 255 / seg))
+    elif [ $i -lt $((seg * 4)) ]; then
+        r=0; g=$(((seg * 4 - i) * 255 / seg)); b=255
+    elif [ $i -lt $((seg * 5)) ]; then
+        r=$(((i - seg * 4) * 255 / seg)); g=0; b=255
+    else
+        r=255; g=0; b=$(((cols - i) * 255 / seg))
+    fi
+    printf "\033[48;2;%d;%d;%dm \033[0m" "$r" "$g" "$b"
+    i=$((i + 1))
+done
+printf "\n  Smooth gradient = truecolor active, visible banding = 256 color fallback.\n"
+printf "\n"
+
+# ============================================================
 # Summary
 # ============================================================
 printf "========================================\n"
