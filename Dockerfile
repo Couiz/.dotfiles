@@ -34,4 +34,7 @@ RUN userdel -r ubuntu 2>/dev/null; \
 USER testuser
 WORKDIR /home/testuser
 
+# Stub .zshrc to suppress zsh-newuser-install wizard (install.sh will replace it)
+RUN echo "# placeholder — run ~/.dotfiles/install.sh to configure" > ~/.zshrc
+
 CMD ["/bin/zsh"]
