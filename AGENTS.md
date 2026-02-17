@@ -174,7 +174,13 @@ identified a likely code defect: `tty->term->flags` vs `tty->flags` in
 Tested with `escape-time 0` and `escape-time 10` — both leak. The
 bug is in tmux's response handling, not timing.
 
-**Status:** Upstream bug. No fix available in tmux 3.4. Only real fix
-is a patched tmux release. Cosmetic only — does not affect functionality.
+**Workaround:** `.zshrc.server` registers a `zle-line-init` widget
+(`__drain_leaked_responses`) that reads and discards any pending input
+when the line editor starts. This catches the leaked bytes before they
+appear on the prompt. Uses `read -t 0.01` (10ms timeout) so legitimate
+typeahead is not affected.
+
+**Status:** Upstream bug. No fix available in tmux 3.4. The shell-level
+workaround mitigates the visible leak. Remove it when tmux ships a fix.
 
 [tmux/tmux#4634]: https://github.com/tmux/tmux/issues/4634

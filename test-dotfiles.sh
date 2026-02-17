@@ -44,11 +44,21 @@ if [ "$tmux_running" = true ] || [ -n "$TMUX" ]; then
     printf "  version: %s\n" "${tmux_version:-unknown}"
 
     if [ "$passthrough" = "on" ] || [ "$passthrough" = "all" ]; then
-        fail "OSC 11 response leak: allow-passthrough is '${passthrough}'"
-        printf "        Known tmux bug (tmux/tmux#4634): when a client attaches,\n"
-        printf "        tmux queries the outer terminal for DA/DA2/OSC 10/OSC 11.\n"
-        printf "        The response leaks as visible text (e.g. '11;rgb:...').\n"
-        printf "        This affects tmux 3.4+ with Windows Terminal over SSH.\n"
+        # check if the zle-line-init workaround is in place
+        dotfiles_dir="$(cd "$(dirname "$0")" && pwd)"
+        zshrc_server="$dotfiles_dir/.zshrc.server"
+        if grep -q "__drain_leaked_responses" "$zshrc_server" 2>/dev/null; then
+            warn "OSC 11 response leak: allow-passthrough is '${passthrough}' (workaround active)"
+            printf "        Known tmux bug (tmux/tmux#4634): tmux leaks DA/OSC\n"
+            printf "        responses on client attach. Workaround in .zshrc.server\n"
+            printf "        drains leaked input via zle-line-init.\n"
+        else
+            fail "OSC 11 response leak: allow-passthrough is '${passthrough}'"
+            printf "        Known tmux bug (tmux/tmux#4634): when a client attaches,\n"
+            printf "        tmux queries the outer terminal for DA/DA2/OSC 10/OSC 11.\n"
+            printf "        The response leaks as visible text (e.g. '11;rgb:...').\n"
+            printf "        This affects tmux 3.4+ with Windows Terminal over SSH.\n"
+        fi
         printf "\n"
         printf "        Manual test: detach (prefix+d), then 'tmux a'.\n"
         printf "        If '11;rgb:...' appears on the prompt, the bug is active.\n"

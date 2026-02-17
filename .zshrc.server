@@ -19,6 +19,15 @@ setopt COMPLETE_ALIASES
 # --- Prompt ---
 command -v starship &>/dev/null && eval "$(starship init zsh)" || PROMPT='%n@%m:%~$ '
 
+# workaround: tmux leaks DA/OSC responses on client attach (tmux/tmux#4634)
+# drain any leaked bytes from the input buffer before each prompt line
+if [[ -n "$TMUX" ]]; then
+  __drain_leaked_responses() {
+    while read -t 0.01 -s -k 1 2>/dev/null; do :; done
+  }
+  zle -N zle-line-init __drain_leaked_responses
+fi
+
 # --- Plugins (if available) ---
 [ -s ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 [ -s ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
