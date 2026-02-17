@@ -111,6 +111,8 @@ source "$ZSH/oh-my-zsh.sh"
 # --- Keybindings (safety net — oh-my-zsh may already set these) ---
 bindkey '^[[1;5C' forward-word       # ctrl+right
 bindkey '^[[1;5D' backward-word      # ctrl+left
+bindkey '^[[1;3C' forward-word       # alt+right
+bindkey '^[[1;3D' backward-word      # alt+left
 
 # --- Prompt (Powerlevel10k) ---
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
