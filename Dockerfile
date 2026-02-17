@@ -24,6 +24,7 @@ RUN rm -f /etc/dpkg/dpkg.cfg.d/excludes \
 # Locale (required for zsh/tmux to behave correctly)
 RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
+ENV TERM=xterm-256color
 
 # Neovim 0.10+ (Ubuntu 24.04 repos only ship 0.9.x, config needs 0.10+ for OSC 52)
 RUN curl -LO https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.tar.gz \
