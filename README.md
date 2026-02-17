@@ -10,9 +10,15 @@ Linux).
 |------|-------------|
 | `.zshrc` | ZSH config for local/desktop (oh-my-zsh, powerlevel10k, fzf, zoxide) |
 | `.zshrc.server` | ZSH config for servers (minimal, no framework, zero dependencies) |
+| `.zshrc.local.example` | Template for machine-specific PATH, NVM, aliases |
 | `.tmux.conf` | tmux config (Ctrl+A prefix, vim-style nav, Campbell theme) |
+| `.tmux/scripts/status.sh` | POSIX shell script for tmux status bar (CPU/RAM/disk) |
 | `.config/nvim/init.lua` | Neovim config (lazy.nvim, LSP, treesitter, telescope) |
 | `.gitconfig` | Git config (delta pager, LFS, GitHub CLI credentials) |
+| `install.sh` | Symlink + setup script (`local` or `server` mode) |
+| `test-dotfiles.sh` | Diagnostic checks (fonts, clipboard, tools, symlinks) |
+| `Dockerfile` | Docker image for manual testing (Ubuntu 24.04, core tools only) |
+| `docker-compose.yml` | Compose config (volume-mounts repo, enables TTY) |
 
 Clipboard works over SSH from any terminal via OSC 52 -- no xclip or
 X11 required.
@@ -88,7 +94,57 @@ Backed-up files (created during install as `*.bak`) can be restored:
 mv ~/.zshrc.bak ~/.zshrc
 ```
 
+## Testing
+
+### Docker
+
+A Docker environment is provided for manual testing in a clean
+Ubuntu 24.04 container. Only core tools are installed; optional tools
+(eza, fzf, fd, zoxide, starship, delta) are absent so you can verify
+guard behavior and install them ad-hoc with `sudo apt install`.
+
+```sh
+docker-compose build                  # build image (one-time)
+docker-compose run --rm dotfiles      # interactive zsh shell
+```
+
+Inside the container, run `install.sh` with either mode and test
+as usual:
+
+```sh
+cd ~/.dotfiles
+./install.sh server       # or: ./install.sh local
+exec zsh                  # reload shell
+./test-dotfiles.sh        # run diagnostics
+tmux                      # test tmux
+nvim                      # test neovim
+```
+
+The repo is volume-mounted -- edits on the host are reflected
+immediately without rebuilding.
+
+### Diagnostic script
+
+Run the diagnostic script to verify your setup:
+
+```sh
+./test-dotfiles.sh
+```
+
+Checks Nerd Font glyphs, OSC 52 clipboard, OSC 11 leak mitigations,
+core tool availability, and symlink correctness.
+
 ## Key bindings
+
+### ZSH
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+Right` / `Ctrl+Left` | Move word forward / backward |
+| `Alt+Right` / `Alt+Left` | Move word forward / backward |
+| `Home` | Beginning of line |
+| `End` | End of line |
+| `Delete` | Delete character (server config) |
 
 ### tmux (prefix: Ctrl+A)
 

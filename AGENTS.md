@@ -18,6 +18,10 @@ of which client (Windows Terminal, iTerm2, Linux) connects over SSH.
 .config/nvim/init.lua   — Neovim config (Lua, lazy.nvim plugin manager)
 .gitconfig              — Git config (delta pager, LFS, credential helpers)
 install.sh              — symlink + setup script (takes local|server arg)
+test-dotfiles.sh        — diagnostic checks (fonts, clipboard, tools, symlinks)
+Dockerfile              — Docker image for manual testing (Ubuntu 24.04)
+docker-compose.yml      — compose config (volume-mounts repo, enables TTY)
+.dockerignore           — excludes .git from Docker build context
 ```
 
 ## Installation
@@ -37,7 +41,48 @@ Machine-specific config (NVM, PATH, aliases) goes in `~/.zshrc.local`
 
 ## Build / Lint / Test Commands
 
-There is no build system, CI, or test harness.
+There is no build system or CI.
+
+### Docker testing environment
+
+A Dockerfile and docker-compose.yml provide a clean Ubuntu 24.04
+container for manual testing. The image ships only core tools (zsh,
+tmux, neovim, git); optional tools are absent by default so guard
+behavior can be verified. The repo is volume-mounted, so host edits
+are reflected immediately without rebuilding.
+
+```sh
+docker-compose build                          # build image (one-time)
+docker-compose run --rm dotfiles              # interactive zsh shell
+```
+
+Inside the container:
+
+```sh
+cd ~/.dotfiles
+./install.sh server                           # or: ./install.sh local
+exec zsh                                      # reload shell with new config
+./test-dotfiles.sh                            # run diagnostics
+tmux                                          # test tmux
+nvim                                          # test neovim
+```
+
+Install optional tools ad-hoc to test guard activation:
+
+```sh
+sudo apt update && sudo apt install -y eza fd-find
+exec zsh                                      # eza aliases + fd fzf activate
+```
+
+### Diagnostic tests
+
+```sh
+./test-dotfiles.sh                             # run all checks
+```
+
+Checks: Nerd Font glyphs, OSC 11 leak mitigations, OSC 52 clipboard,
+core tool availability (zsh, tmux, nvim, git, starship), and symlink
+correctness.
 
 ### Validation (manual)
 
@@ -179,11 +224,11 @@ With 0 or 10ms, tmux cannot fully reassemble fragmented escape sequence
 responses arriving over SSH. 30ms gives enough time without noticeable
 ESC key delay (default tmux is 500ms).
 
-**Workaround:** `.zshrc.server` registers a `zle-line-init` widget
-(`__drain_leaked_responses`) that reads and discards any pending input
-when the line editor starts. This catches the leaked bytes before they
-appear on the prompt. Uses `read -t 0.01` (10ms timeout) so legitimate
-typeahead is not affected.
+**Workaround:** `.zshrc.server` defines a `zle-line-init` widget that
+enables application mode (`smkx`) and, when inside tmux, drains any
+pending input via `read -t 0.01 -s -k 1` in a loop. This catches the
+leaked bytes before they appear on the prompt. The 10ms timeout avoids
+consuming legitimate typeahead.
 
 **Status:** Upstream bug. No fix available in tmux 3.4. The shell-level
 workaround mitigates the visible leak. Remove it when tmux ships a fix.

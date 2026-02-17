@@ -1,0 +1,7 @@
+services:
+  dotfiles:
+    build: .
+    volumes:
+      - .:/home/testuser/.dotfiles
+    stdin_open: true
+    tty: true

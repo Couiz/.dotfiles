@@ -48,7 +48,7 @@ if [ "$tmux_running" = true ] || [ -n "$TMUX" ]; then
         dotfiles_dir="$(cd "$(dirname "$0")" && pwd)"
         has_drain=false
         has_escape_time_fix=false
-        if grep -q "__drain_leaked_responses" "$dotfiles_dir/.zshrc.server" 2>/dev/null; then
+        if grep -q "read -t 0.01" "$dotfiles_dir/.zshrc.server" 2>/dev/null; then
             has_drain=true
         fi
         if [ "${escape_time:-0}" -ge 30 ] 2>/dev/null; then
