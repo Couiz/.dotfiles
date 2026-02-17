@@ -108,11 +108,15 @@ source "$ZSH/oh-my-zsh.sh"
 
 # === Custom Config ===
 
-# --- Keybindings (safety net — oh-my-zsh may already set these) ---
+# --- Keybindings (safety net — oh-my-zsh sets most of these) ---
+# modifier+arrow: oh-my-zsh binds ctrl but not alt
 bindkey '^[[1;5C' forward-word       # ctrl+right
 bindkey '^[[1;5D' backward-word      # ctrl+left
 bindkey '^[[1;3C' forward-word       # alt+right
 bindkey '^[[1;3D' backward-word      # alt+left
+# standard keys: terminfo values (sequences vary by terminal type)
+[[ -n "${terminfo[khome]}" ]] && bindkey "${terminfo[khome]}" beginning-of-line
+[[ -n "${terminfo[kend]}"  ]] && bindkey "${terminfo[kend]}"  end-of-line
 
 # --- Prompt (Powerlevel10k) ---
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
