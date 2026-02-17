@@ -131,6 +131,17 @@ check_link() {
 }
 check_link "$HOME/.tmux.conf" "$dotfiles_dir/.tmux.conf"
 check_link "$HOME/.config/nvim/init.lua" "$dotfiles_dir/.config/nvim/init.lua"
+# .gitconfig is not symlinked by install.sh (portability issues — see install.sh)
+if [ -L "$HOME/.gitconfig" ]; then
+    actual=$(readlink -f "$HOME/.gitconfig" 2>/dev/null || readlink "$HOME/.gitconfig")
+    if printf '%s' "$actual" | grep -q "dotfiles"; then
+        pass "$HOME/.gitconfig -> $actual"
+    else
+        warn "$HOME/.gitconfig -> $actual (not pointing to dotfiles)"
+    fi
+else
+    skip "$HOME/.gitconfig (not managed by install.sh)"
+fi
 # zshrc could be .zshrc or .zshrc.server depending on install mode
 if [ -L "$HOME/.zshrc" ]; then
     actual=$(readlink -f "$HOME/.zshrc" 2>/dev/null || readlink "$HOME/.zshrc")
