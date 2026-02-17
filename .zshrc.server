@@ -17,25 +17,31 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 setopt COMPLETE_ALIASES
 
 # --- Keybindings ---
+# modifier+arrow: hardcoded xterm sequences (standard across all major frameworks)
 bindkey '^[[1;5C' forward-word       # ctrl+right
 bindkey '^[[1;5D' backward-word      # ctrl+left
 bindkey '^[[1;3C' forward-word       # alt+right
 bindkey '^[[1;3D' backward-word      # alt+left
-bindkey '^[[H'    beginning-of-line  # home
-bindkey '^[[F'    end-of-line        # end
-bindkey '^[[3~'   delete-char        # delete
+
+# standard keys: use terminfo (sequences differ between terminal types)
+[[ -n "${terminfo[khome]}" ]] && bindkey "${terminfo[khome]}" beginning-of-line  # home
+[[ -n "${terminfo[kend]}"  ]] && bindkey "${terminfo[kend]}"  end-of-line        # end
+[[ -n "${terminfo[kdch1]}" ]] && bindkey "${terminfo[kdch1]}" delete-char        # delete
+
+# application mode: required for terminfo values to match actual sequences
+# also handles tmux DA/OSC response leak workaround (tmux/tmux#4634)
+zle-line-init() {
+  (( ${+terminfo[smkx]} )) && echoti smkx
+  [[ -n "$TMUX" ]] && while read -t 0.01 -s -k 1 2>/dev/null; do :; done
+}
+zle-line-finish() {
+  (( ${+terminfo[rmkx]} )) && echoti rmkx
+}
+zle -N zle-line-init
+zle -N zle-line-finish
 
 # --- Prompt ---
 command -v starship &>/dev/null && eval "$(starship init zsh)" || PROMPT='%n@%m:%~$ '
-
-# workaround: tmux leaks DA/OSC responses on client attach (tmux/tmux#4634)
-# drain any leaked bytes from the input buffer before each prompt line
-if [[ -n "$TMUX" ]]; then
-  __drain_leaked_responses() {
-    while read -t 0.01 -s -k 1 2>/dev/null; do :; done
-  }
-  zle -N zle-line-init __drain_leaked_responses
-fi
 
 # --- Plugins (if available) ---
 [ -s ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
