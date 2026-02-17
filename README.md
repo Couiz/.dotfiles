@@ -51,6 +51,20 @@ cp ~/.dotfiles/.zshrc.local.example ~/.zshrc.local
 This file is sourced at the end of both `.zshrc` and `.zshrc.server`
 and is not tracked in git.
 
+## Reload after changes
+
+**ZSH:** source the config or open a new shell:
+
+```sh
+source ~/.zshrc
+```
+
+**tmux:** press `Ctrl+A, r` or run:
+
+```sh
+tmux source-file ~/.tmux.conf
+```
+
 ## Uninstall
 
 Remove the symlinks and cloned dependencies:
