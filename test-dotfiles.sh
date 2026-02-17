@@ -49,10 +49,6 @@ if [ "$tmux_running" = true ] || [ -n "$TMUX" ]; then
         printf "        tmux queries the outer terminal for DA/DA2/OSC 10/OSC 11.\n"
         printf "        The response leaks as visible text (e.g. '11;rgb:...').\n"
         printf "        This affects tmux 3.4+ with Windows Terminal over SSH.\n"
-        if [ "${escape_time:-1}" = "0" ]; then
-            printf "        escape-time=0 may worsen this (no time to reassemble\n"
-            printf "        fragmented responses over SSH).\n"
-        fi
         printf "\n"
         printf "        Manual test: detach (prefix+d), then 'tmux a'.\n"
         printf "        If '11;rgb:...' appears on the prompt, the bug is active.\n"

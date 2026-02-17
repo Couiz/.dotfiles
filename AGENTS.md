@@ -170,13 +170,11 @@ response — it gets forwarded to the pane as visible text. The reporter
 identified a likely code defect: `tty->term->flags` vs `tty->flags` in
 `tty.c`, causing duplicate queries whose responses leak.
 
-**Affected config:** `allow-passthrough on` + `escape-time 0` (current
-`.tmux.conf`). The bug triggers regardless of passthrough, but
-`escape-time 0` may worsen it by not allowing time for fragmented SSH
-responses to reassemble.
+**Affected config:** `allow-passthrough on` (current `.tmux.conf`).
+Tested with `escape-time 0` and `escape-time 10` — both leak. The
+bug is in tmux's response handling, not timing.
 
-**Status:** Upstream bug. No fix available in tmux 3.4. Workarounds to
-evaluate when a fix ships: update tmux, or increase `escape-time` to a
-small non-zero value (e.g. 5).
+**Status:** Upstream bug. No fix available in tmux 3.4. Only real fix
+is a patched tmux release. Cosmetic only — does not affect functionality.
 
 [tmux/tmux#4634]: https://github.com/tmux/tmux/issues/4634
