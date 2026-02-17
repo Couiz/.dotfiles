@@ -4,8 +4,12 @@ FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Core tools only (no optional tools — install ad-hoc to test guards)
-RUN apt-get update && apt-get install -y \
+# Core tools + fzf/zoxide (oh-my-zsh plugins warn if these are missing)
+# Optional tools like eza, fd, delta, starship are left out — install ad-hoc to test guards
+# The base image excludes /usr/share/doc/* via dpkg config, but fzf's zsh
+# integration lives there — remove the exclusion before installing fzf
+RUN rm -f /etc/dpkg/dpkg.cfg.d/excludes \
+    && apt-get update && apt-get install -y \
     zsh \
     tmux \
     git \
@@ -13,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     locales \
     sudo \
+    fzf \
+    zoxide \
     && rm -rf /var/lib/apt/lists/*
 
 # Locale (required for zsh/tmux to behave correctly)
